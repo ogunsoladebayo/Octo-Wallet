@@ -6,11 +6,9 @@ const colors = require('colors');
 const cors = require('cors');
 const helmet = require('helmet');
 const sequelize = require('sequelize');
-const db = require('./config/db');
 
-// // import models
-// const User = require('./Models/User')(sequelize, sequelize.DataTypes)
-// const Transaction = require('./Models/Transaction');
+const errorHandler = require('./middleware/error');
+const auth = require('./routes/auth');
 
 const app = express();
 app.use(morgan('tiny'));
@@ -21,15 +19,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 app.use(helmet());
 
-// connect db
-db.authenticate()
-	.then(() => {
-		console.log('Connection has been established successfully.');
-	})
-	.catch((err) => {
-		console.error('Unable to connect to the database:', err);
-	});
-// User.sync();
-// Transaction.sync();
+// mount routes
+app.use('/api/auth', auth);
+
+app.use(errorHandler);
 
 module.exports = app;
