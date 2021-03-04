@@ -64,19 +64,6 @@ exports.logout = asyncHandler(async (req, res, next) => {
 	});
 });
 
-// @desc      Get current logged in user
-// @route     GET /api/auth/me
-// @access    Private
-exports.getMe = asyncHandler(async (req, res, next) => {
-	//TODO: user is already available in req due to the protect middleware
-	const user = req.user;
-
-	res.status(200).json({
-		success: true,
-		data: user
-	});
-});
-
 // @desc      Update password
 // @route     PUT /api/auth/updatepassword
 // @access    Private
@@ -124,7 +111,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 
 	try {
 		await sendEmail({
-			email: user.email,
+			email: user.emailAddress,
 			subject: 'Password reset token',
 			message
 		});
@@ -133,7 +120,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 	} catch (err) {
 		console.log(err);
 		user.resetPasswordToken = '';
-		user.resetPasswordExpire = '';
+		user.resetPasswordExpire = Date.now();
 
 		await user.save();
 
@@ -145,26 +132,47 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 // @route     PUT /api/auth/resetpassword/:resettoken
 // @access    Public
 exports.resetPassword = asyncHandler(async (req, res, next) => {
+	if (!req.params.resettoken) {
+		return next(new ErrorResponse('Please provide token'), 401);
+	}
 	// Get hashed token
 	const resetPasswordToken = crypto
 		.createHash('sha256')
 		.update(req.params.resettoken)
 		.digest('hex');
 
-	const user = await User.findOne({
-		resetPasswordToken,
-		resetPasswordExpire: { $gt: Date.now() }
+	const user = await db.User.findOne({
+		resetPasswordToken
 	});
-
 	if (!user) {
 		return next(new ErrorResponse('Invalid token', 400));
 	}
 
+	// check if token is not expired
+	if (user.resetPasswordExpire < Date.now()) {
+		return next(new ErrorResponse('Token expired, please try again', 400));
+	}
+
 	// Set new password
 	user.password = req.body.password;
-	user.resetPasswordToken = undefined;
-	user.resetPasswordExpire = undefined;
+	user.resetPasswordToken = '';
+	user.resetPasswordExpire = Date.now();
 	await user.save();
 
-	sendTokenResponse(user, 200, res);
+	res.status(201).json({
+		success: true,
+		token: user.signJwt
+	});
+});
+
+// @desc      Get current logged in user
+// @route     GET /api/auth/me
+// @access    Private
+exports.getMe = asyncHandler(async (req, res, next) => {
+	const user = req.user;
+
+	res.status(200).json({
+		success: true,
+		data: user
+	});
 });
