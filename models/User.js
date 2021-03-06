@@ -56,7 +56,7 @@ module.exports = (sequelize, DataTypes) => {
 				type: DataTypes.DATE
 			},
 			bitcoinWalletId: {
-				type: DataTypes.UUID
+				type: DataTypes.STRING
 			},
 			bitcoinWalletBalance: {
 				type: DataTypes.FLOAT,
@@ -65,7 +65,7 @@ module.exports = (sequelize, DataTypes) => {
 				}
 			},
 			ethereumWalletId: {
-				type: DataTypes.UUID
+				type: DataTypes.STRING
 			},
 			ethereumWalletBalance: {
 				type: DataTypes.FLOAT,
