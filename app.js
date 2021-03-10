@@ -9,6 +9,8 @@ const sequelize = require('sequelize');
 
 const errorHandler = require('./middleware/error');
 const auth = require('./routes/auth');
+const accounts = require('./routes/accounts');
+const transactions = require('./routes/transactions');
 
 const app = express();
 app.use(morgan('tiny'));
@@ -21,6 +23,8 @@ app.use(helmet());
 
 // mount routes
 app.use('/api/auth', auth);
+app.use('/api/accounts', accounts);
+app.use('/api/transactions', transactions);
 
 app.use(errorHandler);
 

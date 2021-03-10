@@ -32,7 +32,8 @@ module.exports = (sequelize, DataTypes) => {
 		},
 		state: {
 			type: DataTypes.STRING,
-			allowNull: false
+			allowNull: false,
+			defaultValue: 'PENDING'
 		}
 	});
 	return Transaction;
